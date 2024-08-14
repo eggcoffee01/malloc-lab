@@ -71,7 +71,6 @@ team_t team = {
 
 //define default ptr
 static void *heap_listp;
-static char* next_listp;
 
 
 /* 
@@ -85,7 +84,6 @@ static void *merge_free(void *bp){
 
     if(prev_alloc && next_alloc){
         PUT(HEADER(bp), PACK(size, 2));
-        next_listp = bp;
         return bp;
     }
     else if (!prev_alloc && next_alloc)
@@ -109,7 +107,6 @@ static void *merge_free(void *bp){
         PUT(FOOTER(bp), PACK(size, 0));
     }
     
-    next_listp = bp;
     return bp;
 }
 
@@ -139,7 +136,7 @@ int mm_init(void)
     PUT(heap_listp + (WSIZE*3), PACK(0, 3));
 
     heap_listp += (WSIZE*2);
-    next_listp = heap_listp;
+
     if (extend_heap(CHUNKSIZE/WSIZE) == (void *)-1) return -1;
     return 0;
 }
@@ -150,12 +147,8 @@ int mm_init(void)
  */
 static void *find_fit(size_t asize){
     void *bp;
-    for(bp = next_listp; GET_SIZE(HEADER(bp)) > 0; bp = NEXT(bp)){
-        if(!GET_ALLOC(HEADER(bp)) && (asize <= GET_SIZE(HEADER(bp)))){
-            return bp;
-        }
-    }
-    for(bp = heap_listp; bp != next_listp; bp = NEXT(bp)){
+    
+    for(bp = heap_listp; GET_SIZE(HEADER(bp)) > 0; bp = NEXT(bp)){
         if(!GET_ALLOC(HEADER(bp)) && asize <= GET_SIZE(HEADER(bp))) return bp;
     }
 
@@ -191,14 +184,12 @@ void *mm_malloc(size_t size)
 
     if((bp = find_fit(asize)) != (void *)-1){
         place(bp, asize);
-        next_listp = bp;
         return bp;
     }
 
     extendsize = MAX(asize, CHUNKSIZE);
     if((bp = extend_heap(extendsize/WSIZE)) == (void *)-1) return NULL;
     place(bp, asize);
-    next_listp = bp;
     return bp;
 }
 

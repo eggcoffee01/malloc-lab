@@ -147,7 +147,7 @@ int mm_init(void)
  * mm_malloc - Allocate a block by incrementing the brk pointer.
  *     Always allocate a block whose size is a multiple of the alignment.
  */
-void *find_fit(size_t asize){
+static void *find_fit(size_t asize){
     void *bp;
 
     for(bp = next_listp; GET_SIZE(HDRP(bp)) > 0; bp = NEXT_BLKP(bp)){
